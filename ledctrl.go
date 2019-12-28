@@ -11,21 +11,21 @@ const (
 	bluePin  = 13
 )
 
-type color struct {
+type Color struct {
 	red   int
 	green int
 	blue  int
 }
 
 var (
-	Red     = color{1, 0, 0}
-	Green   = color{0, 1, 0}
-	Blue    = color{0, 0, 1}
-	White   = color{1, 1, 1}
-	Off     = color{0, 0, 0}
-	Yellow  = color{1, 1, 0}
-	Cyan    = color{0, 1, 1}
-	Magenta = color{1, 0, 1}
+	Red     = Color{1, 0, 0}
+	Green   = Color{0, 1, 0}
+	Blue    = Color{0, 0, 1}
+	White   = Color{1, 1, 1}
+	Off     = Color{0, 0, 0}
+	Yellow  = Color{1, 1, 0}
+	Cyan    = Color{0, 1, 1}
+	Magenta = Color{1, 0, 1}
 )
 
 func writeToGPIO(value int, pin int) error {
@@ -42,7 +42,7 @@ func writeToGPIO(value int, pin int) error {
 	return err
 }
 
-func SetColor(c color) error {
+func SetColor(c Color) error {
 	var err error
 	err = writeToGPIO(c.red, redPin)
 	if err != nil {

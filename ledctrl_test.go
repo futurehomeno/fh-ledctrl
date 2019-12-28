@@ -1,6 +1,9 @@
 package ledctrl
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 var colorList = []color{
 	Red, Green, Blue, White, Off, Yellow, Cyan, Magenta,
@@ -13,5 +16,6 @@ func TestSetColor(t *testing.T) {
 		if err != nil {
 			t.Errorf("Got an unexpected error: %s", err.Error())
 		}
+		time.Sleep(500 * time.Millisecond)
 	}
 }

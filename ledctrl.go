@@ -2,7 +2,7 @@ package ledctrl
 
 import (
 	"fmt"
-	"os/exec"
+	"os"
 )
 
 const (
@@ -32,9 +32,14 @@ func writeToGPIO(value int, pin int) error {
 	if value != 0 && value != 1 {
 		return fmt.Errorf("Value %d must be either 0 or 1", value)
 	}
-	cmdStr := fmt.Sprintf("echo %d > /sys/class/gpio/gpio%d/value", value, pin)
-	cmd := exec.Command(cmdStr)
-	return cmd.Run()
+	filename := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin)
+	file, err := os.OpenFile(filename, os.O_WRONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.Write([]byte(fmt.Sprintf("%d", value)))
+	return err
 }
 
 func SetColor(c color) error {

@@ -28,6 +28,9 @@ var (
 	Magenta = Color{1, 0, 1}
 )
 
+// writeToGPIO writes the passed value (0 or 1) to the specified GPIO pin number
+// The function assumes the pin has been exported and set as output,
+// which is the case on CubeOS image
 func writeToGPIO(value int, pin int) error {
 	if value != 0 && value != 1 {
 		return fmt.Errorf("Value %d must be either 0 or 1", value)
@@ -42,6 +45,7 @@ func writeToGPIO(value int, pin int) error {
 	return err
 }
 
+// SetColor changes the hub LED's color to the passed one
 func SetColor(c Color) error {
 	var err error
 	err = writeToGPIO(c.red, redPin)

@@ -1,5 +1,7 @@
-# fh-ledctrl
-A Library to easily control the hub's LED
+# ledctrl
+A Go Library to easily control the hub's LED.
+
+The library works assuming fh-selftest has run and the LED GPIO pins are configured properly according to this script https://github.com/futurehomeno/fh-selftest/blob/develop/no-test/share/set-leds-white
 
 ## Usage
 Get the library
@@ -10,7 +12,7 @@ go get github.com/futurehomeno/fh-ledctrl
 
 The API has the following functions
 
-```go
+```
 func SetColor(c Color) error
 func GetColor() (Color, error)
 ```

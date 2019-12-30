@@ -8,13 +8,14 @@ Get the library
 go get github.com/futurehomeno/fh-ledctrl
 ```
 
-The API has one function
+The API has the following functions
 
 ```go
 func SetColor(c Color) error
+func GetColor() (Color, error)
 ```
 
-The function takes one of eight colors:
+The following colors are supported:
 
 ```
 ledctrl.Red,
@@ -29,15 +30,21 @@ ledctrl.Magenta,
 
 ## Example
 A usage example can be found in `example/main.go`.
-Basically, just do this:
+
+First, import the package
 
 ```go
 import ledctrl "github.com/futurehomeno/fh-ledctrl"
+```
 
-func main() {
-    err = ledctrl.SetColor(ledctrl.Green)
-    if err != nil {
-        panic(err)
-    }
-}
+To set the LED color:
+
+```go
+err := ledctrl.SetColor(ledctrl.Green)
+```
+
+To get the LED color:
+
+```go
+color, err := ledctrl.GetColor()
 ```

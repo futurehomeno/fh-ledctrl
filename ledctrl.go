@@ -3,6 +3,7 @@ package ledctrl
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 const (
@@ -10,6 +11,8 @@ const (
 	greenPin = 12
 	bluePin  = 13
 )
+
+const gpioFile = "/sys/class/gpio/gpio%d/value"
 
 type Color struct {
 	red   int
@@ -35,7 +38,7 @@ func writeToGPIO(value int, pin int) error {
 	if value != 0 && value != 1 {
 		return fmt.Errorf("Value %d must be either 0 or 1", value)
 	}
-	filename := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin)
+	filename := fmt.Sprintf(gpioFile, pin)
 	file, err := os.OpenFile(filename, os.O_WRONLY, 0666)
 	if err != nil {
 		return err
@@ -43,6 +46,27 @@ func writeToGPIO(value int, pin int) error {
 	defer file.Close()
 	_, err = file.Write([]byte(fmt.Sprintf("%d", value)))
 	return err
+}
+
+func readGPIO(pin int) (int, error) {
+	filename := fmt.Sprintf(gpioFile, pin)
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0666)
+	if err != nil {
+		return -1, err
+	}
+	bytes := make([]byte, 1)
+	_, err = file.Read(bytes)
+	if err != nil {
+		return -1, err
+	}
+	bit, err := strconv.Atoi(string(bytes))
+	if err != nil {
+		return -1, err
+	}
+	if bit != 0 && bit != 1 {
+		return -1, fmt.Errorf("Pin value must be either 0 or 1. Instead, got %d", bit)
+	}
+	return bit, nil
 }
 
 // SetColor changes the hub LED's color to the passed one
@@ -61,4 +85,22 @@ func SetColor(c Color) error {
 		return err
 	}
 	return nil
+}
+
+// GetColor returns the current color of the LED
+func GetColor() (Color, error) {
+	var err error
+	red, err := readGPIO(redPin)
+	if err != nil {
+		return Off, err
+	}
+	green, err := readGPIO(greenPin)
+	if err != nil {
+		return Off, err
+	}
+	blue, err := readGPIO(bluePin)
+	if err != nil {
+		return Off, err
+	}
+	return Color{red, green, blue}, nil
 }

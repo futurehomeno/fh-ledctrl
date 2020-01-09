@@ -1,8 +1,6 @@
 # ledctrl
 A Go Library to easily control the hub's LED.
 
-The library works assuming fh-selftest has run and the LED GPIO pins are configured properly according to this script https://github.com/futurehomeno/fh-selftest/blob/develop/no-test/share/set-leds-white
-
 ## Usage
 Get the library
 
@@ -50,3 +48,6 @@ To get the LED color:
 ```go
 color, err := ledctrl.GetColor()
 ```
+
+## Hub Support
+On hubs with model `cube-1v1-eu` and newer, fh-selftest makes sure that the LED GPIO pins are configured properly according to this script https://github.com/futurehomeno/fh-selftest/blob/develop/no-test/share/set-leds-white. For beta hubs (`cube-1v1-eu-proto-*`), the library exports the correct pins when it is imported.

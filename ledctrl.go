@@ -2,8 +2,11 @@ package ledctrl
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"regexp"
 	"strconv"
+	"time"
 )
 
 const (
@@ -12,7 +15,13 @@ const (
 	bluePin  = 13
 )
 
-const gpioFile = "/sys/class/gpio/gpio%d/value"
+var pins = []int{redPin, greenPin, bluePin}
+
+const (
+	gpioExportFile    = "/sys/class/gpio/export"
+	gpioValueFile     = "/sys/class/gpio/gpio%d/value"
+	gpioDirectionFile = "/sys/class/gpio/gpio%d/direction"
+)
 
 type Color struct {
 	red   int
@@ -38,7 +47,7 @@ func writeToGPIO(value int, pin int) error {
 	if value != 0 && value != 1 {
 		return fmt.Errorf("Value %d must be either 0 or 1", value)
 	}
-	filename := fmt.Sprintf(gpioFile, pin)
+	filename := fmt.Sprintf(gpioValueFile, pin)
 	file, err := os.OpenFile(filename, os.O_WRONLY, 0666)
 	if err != nil {
 		return err
@@ -49,7 +58,7 @@ func writeToGPIO(value int, pin int) error {
 }
 
 func readGPIO(pin int) (int, error) {
-	filename := fmt.Sprintf(gpioFile, pin)
+	filename := fmt.Sprintf(gpioValueFile, pin)
 	file, err := os.OpenFile(filename, os.O_RDONLY, 0666)
 	if err != nil {
 		return -1, err
@@ -103,4 +112,39 @@ func GetColor() (Color, error) {
 		return Off, err
 	}
 	return Color{red, green, blue}, nil
+}
+
+// If the hub is an older model, export the LED GPIO pins
+func init() {
+	const hubModelFile = "/usr/local/share/futurehome/smarthub.model"
+	hubModel, err := ioutil.ReadFile(hubModelFile)
+	if err != nil {
+		return
+	}
+	if matched, _ := regexp.MatchString(`cube-1v1-eu-proto-\d`, string(hubModel)); matched {
+		expFile, err := os.OpenFile(gpioExportFile, os.O_WRONLY, 0666)
+		if err != nil {
+			return
+		}
+		defer expFile.Close()
+		for _, pin := range pins {
+			_, err = expFile.Write([]byte(strconv.Itoa(pin)))
+			if err != nil {
+				return
+			}
+		}
+		time.Sleep(3 * time.Second)
+		for _, pin := range pins {
+			filename := fmt.Sprintf(gpioDirectionFile, pin)
+			dirFile, err := os.OpenFile(filename, os.O_WRONLY, 0666)
+			if err != nil {
+				return
+			}
+			_, err = dirFile.Write([]byte("out"))
+			if err != nil {
+				return
+			}
+			dirFile.Close()
+		}
+	}
 }

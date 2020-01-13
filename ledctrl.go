@@ -40,7 +40,7 @@ var (
 // which is the case on CubeOS image
 func writeToGPIO(value int, pin int) error {
 	if value != 0 && value != 1 {
-		return fmt.Errorf("Value %d must be either 0 or 1", value)
+		return fmt.Errorf("value %d must be either 0 or 1", value)
 	}
 	filename := fmt.Sprintf(gpioValueFile, pin)
 	file, err := os.OpenFile(filename, os.O_WRONLY, 0666)
@@ -68,7 +68,7 @@ func readGPIO(pin int) (int, error) {
 		return -1, err
 	}
 	if bit != 0 && bit != 1 {
-		return -1, fmt.Errorf("Pin value must be either 0 or 1. Instead, got %d", bit)
+		return -1, fmt.Errorf("pin value must be either 0 or 1. Instead, got %d", bit)
 	}
 	return bit, nil
 }
@@ -76,7 +76,7 @@ func readGPIO(pin int) (int, error) {
 // SetColor changes the hub LED's color to the passed one
 func SetColor(c Color) error {
 	if !isSupportedHub {
-		return fmt.Errorf("Hub model not supported or access denied")
+		return fmt.Errorf("hub model not supported or access denied")
 	}
 	var err error
 	err = writeToGPIO(c.red, redPin)
@@ -97,7 +97,7 @@ func SetColor(c Color) error {
 // GetColor returns the current color of the LED
 func GetColor() (Color, error) {
 	if !isSupportedHub {
-		return Off, fmt.Errorf("Hub model not supported or access denied")
+		return Off, fmt.Errorf("hub model not supported or access denied")
 	}
 	var err error
 	red, err := readGPIO(redPin)

@@ -6,7 +6,6 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"time"
 )
 
 const (
@@ -15,13 +14,9 @@ const (
 	bluePin  = 13
 )
 
-var pins = []int{redPin, greenPin, bluePin}
+const gpioValueFile = "/sys/class/gpio/gpio%d/value"
 
-const (
-	gpioExportFile    = "/sys/class/gpio/export"
-	gpioValueFile     = "/sys/class/gpio/gpio%d/value"
-	gpioDirectionFile = "/sys/class/gpio/gpio%d/direction"
-)
+var isSupportedHub bool
 
 type Color struct {
 	red   int
@@ -80,6 +75,9 @@ func readGPIO(pin int) (int, error) {
 
 // SetColor changes the hub LED's color to the passed one
 func SetColor(c Color) error {
+	if !isSupportedHub {
+		return fmt.Errorf("Hub model not supported or access denied")
+	}
 	var err error
 	err = writeToGPIO(c.red, redPin)
 	if err != nil {
@@ -98,6 +96,9 @@ func SetColor(c Color) error {
 
 // GetColor returns the current color of the LED
 func GetColor() (Color, error) {
+	if !isSupportedHub {
+		return Off, fmt.Errorf("Hub model not supported or access denied")
+	}
 	var err error
 	red, err := readGPIO(redPin)
 	if err != nil {
@@ -114,37 +115,19 @@ func GetColor() (Color, error) {
 	return Color{red, green, blue}, nil
 }
 
-// If the hub is an older model, export the LED GPIO pins
+// Check hub model and decide if it's supported. On older hub models, LED GPIO pins were not exported
 func init() {
+	isSupportedHub = true
+
 	const hubModelFile = "/usr/local/share/futurehome/smarthub.model"
 	hubModel, err := ioutil.ReadFile(hubModelFile)
 	if err != nil {
+		isSupportedHub = false
 		return
 	}
-	if matched, _ := regexp.MatchString(`cube-1v1-eu-proto-\d`, string(hubModel)); matched {
-		expFile, err := os.OpenFile(gpioExportFile, os.O_WRONLY, 0666)
-		if err != nil {
-			return
-		}
-		defer expFile.Close()
-		for _, pin := range pins {
-			_, err = expFile.Write([]byte(strconv.Itoa(pin)))
-			if err != nil {
-				return
-			}
-		}
-		time.Sleep(3 * time.Second)
-		for _, pin := range pins {
-			filename := fmt.Sprintf(gpioDirectionFile, pin)
-			dirFile, err := os.OpenFile(filename, os.O_WRONLY, 0666)
-			if err != nil {
-				return
-			}
-			_, err = dirFile.Write([]byte("out"))
-			if err != nil {
-				return
-			}
-			dirFile.Close()
-		}
+	matched, err := regexp.MatchString(`(cube-1v0|cube-1v1-eu-proto)`, string(hubModel))
+	if matched || err != nil {
+		isSupportedHub = false
+		return
 	}
 }
